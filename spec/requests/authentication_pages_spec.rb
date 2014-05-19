@@ -12,6 +12,7 @@ describe "Authentication" do
   end
 
   describe "signin" do
+    let(:user) { FactoryGirl.create(:user) }
   	before { visit signin_path }
 
   	describe "with invalid information" do
@@ -19,7 +20,11 @@ describe "Authentication" do
 
   		it { should have_title('Sign in') }
   		it { should have_error_message('Invalid') }
-  		describe "after visiting another page" do
+      it { should_not have_link('Profile',  href: user_path(user)) }
+      it { should_not have_link('Settings',   href: edit_user_path(user)) }
+      it { should_not have_link('Users',    href: users_path) }
+  		it { should_not have_link('Sign out',   href: signout_path) }
+      describe "after visiting another page" do
   			before { ('div.alert.alert-error') }
   		end
   	end
@@ -54,8 +59,22 @@ describe "Authentication" do
             expect(page).to have_title('Edit user')
           end
         end
+      
+      describe "when signing in again" do
+        before do
+          click_link "Sign out"
+          visit signin_path
+          fill_in "Email",    with: user.email
+          fill_in "Password", with: user.password
+          click_button "Sign in"
+        end
+
+        it "should render the default (profile) page" do
+          expect(page).to have_title(user.name)
+        end
       end
     end
+  end
     let(:user) { FactoryGirl.create(:user) }
 
     describe "in the Users controller" do
