@@ -43,8 +43,23 @@ describe "Authentication" do
   end
 
   describe "authorization" do
-    describe "for non-signed in users" do
+    describe "for signed in users" do
       let(:user) { FactoryGirl.create(:user) }
+      let(:new_user) { FactoryGirl.create(:user) }
+      before { sign_in user, no_capybara: true }
+
+      describe "using a 'new' action" do
+        before { get new_user_path }
+        specify { response.should redirect_to(root_url) }
+      end
+
+      describe "using a 'create' action" do
+        before { post users_path new_user }
+        specify { response.should redirect_to(root_url) }
+      end
+    end
+    describe "for non-signed in users" do
+
 
       describe "when attempting to visit a protected page" do
         before do
@@ -59,22 +74,23 @@ describe "Authentication" do
             expect(page).to have_title('Edit user')
           end
         end
-      
-      describe "when signing in again" do
-        before do
-          click_link "Sign out"
-          visit signin_path
-          fill_in "Email",    with: user.email
-          fill_in "Password", with: user.password
-          click_button "Sign in"
-        end
 
-        it "should render the default (profile) page" do
-          expect(page).to have_title(user.name)
+      
+        describe "when signing in again" do
+          before do
+            click_link "Sign out"
+            visit signin_path
+            fill_in "Email",    with: user.email
+            fill_in "Password", with: user.password
+            click_button "Sign in"
+          end
+
+          it "should render the default (profile) page" do
+            expect(page).to have_title(user.name)
+          end
         end
       end
     end
-  end
     let(:user) { FactoryGirl.create(:user) }
 
     describe "in the Users controller" do

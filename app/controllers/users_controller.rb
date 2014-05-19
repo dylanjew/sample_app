@@ -2,24 +2,21 @@ class UsersController < ApplicationController
   before_action :signed_in_user, only: [:edit, :update, :index, :destroy]
   before_action :correct_user,   only: [:edit, :update]
   before_action :admin_user,     only: :destroy
+  before_action :signed_in_user_log_in, only: [:new, :create]
 
   def show
   	@user = User.find(params[:id])
   end
 
   def create
-    if signed_in?
-      redirect_to(root_url)
-    else
-    	@user = User.new(user_params)
-    	if @user.save
-        sign_in @user
-    		flash[:success] = "Welcome to the Sample App!"
-    		redirect_to @user
+    @user = User.new(user_params)
+    if @user.save
+      sign_in @user
+  		flash[:success] = "Welcome to the Sample App!"
+  		redirect_to @user
   	 else
   	 	render 'new'
-  	 end
-    end
+	  end
   end
 
   def edit
@@ -35,11 +32,7 @@ class UsersController < ApplicationController
   end
 
   def new
-    if signed_in?
-      redirect_to(root_url)
-    else
-  	 @user = User.new
-    end
+  	@user = User.new
   end
 
   def index
@@ -47,8 +40,13 @@ class UsersController < ApplicationController
   end
 
   def destroy
-    User.find(params[:id]).destroy
-    flash[:success] = "User deleted."
+    user = User.find(params[:id])
+    unless current_user?(user)
+      user.destroy
+      flash[:success] = "User deleted."
+    else
+      flash[:error] = "You can't destroy yourself"
+    end
     redirect_to users_url
   end
 
@@ -74,5 +72,9 @@ class UsersController < ApplicationController
 
     def admin_user
       redirect_to(root_url) unless current_user.admin?
+    end
+
+    def signed_in_user_log_in
+      redirect_to root_url, notice: "Already logged in" if signed_in?
     end
 end
