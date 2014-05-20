@@ -137,6 +137,11 @@ describe "Authentication" do
         before { patch user_path(wrong_user) }
         specify { expect(response).to redirect_to(root_url) }
       end
+
+      describe "delete links should not appear" do
+        before { visit user_path(wrong_user) }
+        it { should_not have_link('delete') }
+      end
     end
   end
   describe "as non-admin user" do
